@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FolSec — Active Directory Yöneticisi v2</title>
+  <meta name="description" content="FolSec Active Directory Kullanıcılar ve Bilgisayarlar Yönetim Paneli" />
+  <link rel="stylesheet" href="index.css" />
+  <style>
+    /* =============================================
+       VERSION B — Additional Styles
+       ============================================= */
+
+    /* Version B overrides base #app-layout height which assumed a 52px header */
+    #app-layout {
+      height: 100vh !important;
+      height: 100dvh !important;
+    }
+
+    /* Mobile Responsive Base Overrides */
+    body {
+      min-width: 0 !important;
+      overflow-x: hidden;
+    }
+
+    /* Scale toolbar inner elements a bit bigger & increase icon brightness */
+    #toolbar {
+      padding: 8px 12px;
+      gap: 6px;
+    }
+
+    .tb-btn {
+      width: 36px;
+      height: 34px;
+      color: #f8fafc;
+    }
+
+    .tb-btn svg {
+      width: 18px;
+      height: 18px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    }
+
+    /* Override base min-width so search can shrink on mobile */
+    .tb-search {
+      height: 34px;
+      margin-left: auto !important;
+      min-width: 140px;
+    }
+
+    .tb-search svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .tb-search input {
+      font-size: 13px;
+    }
+
+    /* (button colors now defined in ch-tb-btn section below) */
+
+    /* Top-right global actions */
+    #global-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 10px;
+    }
+
+    .ga-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--r-md);
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--t-fast);
+      position: relative;
+    }
+
+    .ga-btn:hover {
+      background: var(--bg-glass-hover);
+      border-color: var(--border);
+      color: var(--text-primary);
+    }
+
+    .ga-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* Notification badge */
+    .ga-btn.has-badge::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+      border: 1.5px solid var(--bg-base);
+    }
+
+    /* User avatar */
+    #ga-user {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--t-fast);
+    }
+
+    #ga-user:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Tree panel collapse */
+    #tree-collapse-btn {
+      position: absolute;
+      top: 8px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--r-sm);
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--t-fast);
+      z-index: 2;
+    }
+
+    #tree-collapse-btn:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+    }
+
+    #tree-collapse-btn svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    /* Collapsed tree panel */
+    #tree-panel.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      padding: 0;
+      overflow: hidden;
+      border-right-color: transparent;
+    }
+
+    #tree-resizer.tree-hidden {
+      display: none;
+    }
+
+    /* Expand button (shown when collapsed) */
+    #tree-expand-btn {
+      display: none;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--r-sm);
+      background: var(--bg-glass-hover);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-muted);
+      align-items: center;
+      justify-content: center;
+      transition: all var(--t-fast);
+      flex-shrink: 0;
+      margin: 4px 4px 4px 6px;
+      align-self: flex-start;
+      margin-top: 8px;
+    }
+
+    #tree-expand-btn.visible {
+      display: flex;
+    }
+
+    #tree-expand-btn:hover {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: var(--border-accent);
+    }
+
+    #tree-expand-btn svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* ---- Content Panel Header ---- */
+    #content-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 8px 14px;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(14, 19, 30, 0.7);
+      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .ch-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ch-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--r-md);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      transition: all var(--t-fast);
+      white-space: nowrap;
+      letter-spacing: -0.1px;
+      position: relative;
+    }
+
+    .ch-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .ch-btn:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    .ch-btn.primary {
+      background: var(--accent);
+      color: #071a14;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .ch-btn.primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    .ch-btn.primary svg {
+      color: #071a14;
+    }
+
+    .ch-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ---- New Object Dropdown Panel ---- */
+    #new-object-panel {
+      display: none;
+      position: fixed;
+      top: auto;
+      right: 14px;
+      z-index: 9999;
+      background: rgba(14, 19, 30, 0.98);
+      border: 1px solid var(--border-light);
+      border-radius: var(--r-lg);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+      width: 480px;
+      overflow: hidden;
+    }
+
+    #new-object-panel.open {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nop-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .nop-tab {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      transition: all var(--t-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: var(--font);
+    }
+
+    .nop-tab svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .nop-tab:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nop-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .nop-tab.active svg {
+      color: var(--accent);
+    }
+
+    .nop-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .nop-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .nop-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .nop-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nop-field label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .nop-field input,
+    .nop-field select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 12px;
+      padding: 6px 10px;
+      outline: none;
+      transition: border-color var(--t-fast);
+    }
+
+    .nop-field input:focus,
+    .nop-field select:focus {
+      border-color: var(--border-accent);
+      background: var(--accent-dim);
+    }
+
+    .nop-field select option {
+      background: #0d1119;
+    }
+
+    .nop-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .nop-btn {
+      padding: 6px 16px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      font-family: var(--font);
+      transition: all var(--t-fast);
+    }
+
+    .nop-btn.cancel {
+      background: none;
+      color: var(--text-secondary);
+    }
+
+    .nop-btn.cancel:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+    }
+
+    .nop-btn.confirm {
+      background: var(--accent);
+      color: #071a14;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .nop-btn.confirm:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* ---- Selection Action Bar ---- */
+    #selection-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .sel-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .sel-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--t-fast);
+      font-family: var(--font);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .sel-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      vertical-align: middle;
+      display: block;
+    }
+
+    .sel-btn:hover {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    .sel-btn.danger {
+      color: #fca5a5;
+      border-color: rgba(252, 165, 165, 0.2);
+    }
+
+    .sel-btn.danger:hover {
+      background: rgba(252, 165, 165, 0.08);
+      color: #fecaca;
+    }
+
+    /* ---- Status column removed, adding Details column & Filter buttons ---- */
+    .table-header-row,
+    .obj-row {
+      grid-template-columns: 44px 3fr 2fr 4fr; /* 44px: icon(20) + dot(8) + gap */
+    }
+
+    .th-filter-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding: 2px;
+      opacity: 0;
+      transition: opacity 0.2s, color 0.2s;
+    }
+
+    .th-cell:hover .th-filter-btn {
+      opacity: 1;
+    }
+
+    .th-filter-btn:hover {
+      color: var(--accent);
+    }
+
+    .th-filter-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Status dot on icon */
+    .obj-icon {
+      position: relative;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .obj-status-dot {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: -4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-panel);
+    }
+
+    .obj-status-dot.active {
+      background: #22c55e;
+    }
+
+    .obj-status-dot.disabled {
+      background: #6b7280;
+    }
+
+    /* ---- Breadcrumb Container & Search ---- */
+    #breadcrumb-container {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      background: rgba(10, 14, 22, 0.4);
+      border-bottom: 1px solid var(--border);
+      height: 30px;
+      flex-shrink: 0;
+      /* no justify-content: items flow left-to-right inline */
+    }
+
+    #breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0;
+      border: none;
+      height: auto;
+      flex-shrink: 0;
+      /* shrink to content, don't expand */
+      overflow: hidden;
+      max-width: calc(100% - 220px);
+      /* leave room for search */
+    }
+
+    .bc-search-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      height: 22px;
+      margin-left: 16px;
+      /* gap right after breadcrumb text */
+      flex-shrink: 0;
+    }
+
+    .bc-search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 11px;
+      padding: 0 8px;
+      width: 160px;
+    }
+
+    .bc-search-bar button {
+      background: none;
+      border: none;
+      border-right: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0 7px;
+      display: flex;
+      align-items: center;
+      order: -1;
+    }
+
+    .bc-search-bar button svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .bc-search-bar button:hover {
+      color: var(--text-primary);
+      background: none;
+    }
+
+    /* ---- Content Header Navigation ---- */
+    .ch-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-right: 10px;
+      border-right: 1px solid var(--border);
+      padding-right: 10px;
+    }
+
+    .ch-nav-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--r-sm);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .ch-nav-btn:hover:not(:disabled) {
+      background: var(--bg-glass-hover);
+      color: var(--text-primary);
+    }
+
+    .ch-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .ch-nav-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ---- Selection Action Bar ---- */
+    #selection-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(30, 65, 122, 0.1);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+      font-size: 12px;
+      color: #bfdbfe;
+      flex-shrink: 0;
+    }
+
+    .sel-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* ---- Workspace Layout Enhancement (Version B) ---- */
+    #workspace {
+      padding: 12px 14px;
+      background: #080b12;
+      /* Darker outer background */
+    }
+
+    #tree-panel {
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border) !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      margin-right: 14px;
+      /* Gap between panels */
+    }
+
+    #content-panel {
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border) !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* ---- Panel separator enhancement ---- */
+    #tree-resizer {
+      width: 14px;
+      background: transparent !important;
+      margin-left: -14px;
+      /* Pull into the tree-panel margin gap */
+      position: relative;
+      z-index: 10;
+    }
+
+    #tree-resizer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 6px;
+      width: 2px;
+      background: transparent;
+      transition: all var(--t-fast);
+    }
+
+    #tree-resizer:hover::after,
+    #tree-resizer.resizing::after {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* Filter active indicator */
+    .ch-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: var(--border-accent);
+    }
+
+    .ch-btn.active svg {
+      color: var(--accent);
+    }
+
+    /* ---- Mobile Responsiveness ---- */
+    @media (max-width: 768px) {
+
+      /* Breadcrumb */
+      #breadcrumb-container {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 4px 8px;
+        gap: 6px;
+      }
+
+      #breadcrumb {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .bc-search-bar input {
+        width: 100px;
+      }
+
+      /* Workspace: vertical stack, fills remaining height */
+      #workspace {
+        flex-direction: column !important;
+        padding: 6px;
+        gap: 6px;
+        overflow-y: auto;
+      }
+
+      /* Tree panel: fixed height strip at top */
+      #tree-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 180px !important;
+        min-height: 0 !important;
+        flex-shrink: 0;
+        margin-right: 0 !important;
+        overflow-y: auto;
+      }
+
+      /* Hide the desktop collapse button on mobile */
+      #tree-collapse-btn {
+        display: none;
+      }
+
+      #tree-expand-btn {
+        display: none !important;
+      }
+
+      #tree-resizer {
+        display: none !important;
+      }
+
+      /* Content panel: fill remaining space */
+      #content-panel {
+        flex: 1;
+        min-height: 0;
+        height: auto !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Content Header mobile: allow ribbon to scroll horizontally */
+      #content-header {
+        overflow-x: auto;
+        min-height: 44px;
+        padding: 2px 4px;
+      }
+
+      .ch-tb-label {
+        display: none;
+      }
+
+      .ch-tb-btn {
+        min-width: 32px;
+        padding: 4px 6px;
+      }
+
+      /* Table: show only icon + name + status */
+      .table-header-row,
+      .obj-row {
+        grid-template-columns: 32px 1fr 80px !important;
+      }
+
+      .th-cell[data-sort="type"],
+      .obj-cell.type-cell,
+      .th-cell[data-sort="description"],
+      .obj-cell.desc-cell {
+        display: none !important;
+      }
+
+      /* Object list rows taller for touch */
+      .obj-row {
+        height: 36px;
+      }
+
+      /* Status bar */
+      #status-bar {
+        padding: 4px 8px;
+        height: auto;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .status-item:nth-child(3) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app-layout">
+
+    <!-- Breadcrumb (navigation path only) -->
+    <div id="breadcrumb-container">
+      <div id="breadcrumb" role="navigation" aria-label="Konum Yolu"></div>
+      <div class="bc-search-bar">
+        <button id="btn-bc-search" title="Gelişmiş Arama">
+          <span id="icon-bc-search"></span>
+        </button>
+        <input type="text" id="bc-search-input" placeholder="Dizinde ara..." aria-label="Dizin içi ara"
+          autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Workspace -->
+    <div id="workspace">
+
+      <!-- Tree Panel -->
+      <div id="tree-panel" role="tree" aria-label="Active Directory Ağacı">
+        <button id="tree-collapse-btn" title="Paneli daralt" aria-label="Paneli daralt">
+          <span id="icon-collapse"></span>
+        </button>
+      </div>
+
+      <!-- Resizer -->
+      <div id="tree-resizer" role="separator" aria-orientation="vertical" aria-label="Panel boyutu ayarla"></div>
+
+      <!-- Expand button (visible when tree collapsed) -->
+      <button id="tree-expand-btn" title="Paneli genişlet" aria-label="Paneli genişlet">
+        <span id="icon-expand-tree"></span>
+      </button>
+
+      <!-- Content Panel -->
+      <div id="content-panel">
+
+        <!-- Content Header -->
+        <div id="content-header">
+          <div class="ch-actions">
+            <button class="ch-btn primary" id="ch-btn-new" aria-label="Yeni Oluştur">
+              <span id="icon-ch-new"></span>
+              <span>Yeni Oluştur</span>
+            </button>
+            <button class="ch-btn" id="ch-btn-refresh" aria-label="Yenile">
+              <span id="icon-ch-refresh"></span>
+              <span>Yenile</span>
+            </button>
+            <button class="ch-btn" id="ch-btn-export" aria-label="Dışa Aktar">
+              <span id="icon-ch-export"></span>
+              <span>Dışa Aktar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selection Action Bar -->
+        <div id="selection-action-bar" style="display: none;">
+          <span id="sel-count">1 nesne seçildi</span>
+          <div class="sel-actions">
+            <button class="sel-btn" id="sel-btn-move"><span id="icon-sel-move"></span> Taşı</button>
+            <button class="sel-btn" id="sel-btn-update"><span id="icon-sel-update"></span> Çoklu Güncelle</button>
+            <button class="sel-btn danger" id="sel-btn-delete"><span id="icon-sel-delete"></span> Sil</button>
+          </div>
+        </div>
+
+
+        <!-- Table Header -->
+        <div class="table-header-row" id="table-header" role="row">
+          <div></div>
+          <div class="th-cell" data-sort="name" role="columnheader" aria-sort="ascending">
+            Ad <span class="sort-icon"></span><button class="th-filter-btn" title="Filtrele"><span
+                class="icon-filter-name"></span></button>
+          </div>
+          <div class="th-cell" data-sort="type" role="columnheader">
+            Tür <span class="sort-icon"></span><button class="th-filter-btn" title="Filtrele"><span
+                class="icon-filter-type"></span></button>
+          </div>
+          <div class="th-cell" data-sort="details" role="columnheader" style="border-right: none;">
+            Detaylar <span class="sort-icon"></span><button class="th-filter-btn" title="Filtrele"><span
+                class="icon-filter-details"></span></button>
+          </div>
+        </div>
+
+        <!-- Object List -->
+        <div id="object-list" role="listbox" aria-label="Nesneler"></div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div id="status-bar" role="status">
+      <div class="status-item">
+        <span class="status-dot"></span>
+        Domain: <span>FOLSECDC.folsec.local</span>
+      </div>
+      <div class="status-item">
+        Nesne: <span id="status-count">—</span>
+      </div>
+      <div class="status-item" style="margin-left:auto">
+        <span>folsec.local</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" role="alert" aria-live="polite"></div>
+
+  <!-- New Object Panel (body-level for correct fixed z-index) -->
+  <div id="new-object-panel">
+    <div class="nop-tabs">
+      <button class="nop-tab active" data-type="user" id="nop-tab-user">
+        <span id="icon-nop-user"></span> Kullanıcı
+      </button>
+      <button class="nop-tab" data-type="group" id="nop-tab-group">
+        <span id="icon-nop-group"></span> Grup
+      </button>
+      <button class="nop-tab" data-type="ou" id="nop-tab-ou">
+        <span id="icon-nop-ou"></span> Org. Birimi
+      </button>
+    </div>
+    <div class="nop-body">
+      <div class="nop-form" id="nop-form-user">
+        <div class="nop-row">
+          <div class="nop-field"><label>Ad</label><input type="text" id="nop-firstname" placeholder="Örn: Emir" /></div>
+          <div class="nop-field"><label>Soyad</label><input type="text" id="nop-lastname" placeholder="Örn: Işık" />
+          </div>
+        </div>
+        <div class="nop-field"><label>Kullanıcı Adı (UPN)</label><input type="text" id="nop-upn"
+            placeholder="emir.isik@folsec.local" /></div>
+        <div class="nop-row">
+          <div class="nop-field"><label>Şifre</label><input type="password" id="nop-pw" placeholder="••••••••" /></div>
+          <div class="nop-field"><label>E-posta</label><input type="email" id="nop-email"
+              placeholder="emir@folsec.local" /></div>
+        </div>
+        <div class="nop-field"><label>Açıklama</label><input type="text" id="nop-user-desc" placeholder="Opsiyonel" />
+        </div>
+      </div>
+      <div class="nop-form" id="nop-form-group" style="display:none">
+        <div class="nop-field"><label>Grup Adı</label><input type="text" id="nop-groupname"
+            placeholder="Örn: DEPARTMANLAR_READ" /></div>
+        <div class="nop-row">
+          <div class="nop-field"><label>Grup Kapsamı</label>
+            <select id="nop-groupscope">
+              <option value="domain-local">Domain Local</option>
+              <option value="global">Global</option>
+              <option value="universal">Universal</option>
+            </select>
+          </div>
+          <div class="nop-field"><label>Grup Türü</label>
+            <select id="nop-grouptype">
+              <option value="security">Security</option>
+              <option value="distribution">Distribution</option>
+            </select>
+          </div>
+        </div>
+        <div class="nop-field"><label>Açıklama</label><input type="text" id="nop-group-desc" placeholder="Opsiyonel" />
+        </div>
+      </div>
+      <div class="nop-form" id="nop-form-ou" style="display:none">
+        <div class="nop-field"><label>OU Adı</label><input type="text" id="nop-ouname" placeholder="Örn: Satış_OU" />
+        </div>
+        <div class="nop-field"><label>Açıklama</label><input type="text" id="nop-ou-desc" placeholder="Opsiyonel" />
+        </div>
+      </div>
+    </div>
+    <div class="nop-footer">
+      <button class="nop-btn cancel" id="nop-cancel">İptal</button>
+      <button class="nop-btn confirm" id="nop-confirm">Oluştur</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="icons.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="app-b.js"></script>
+
+  <!-- Inject SVG icons -->
+  <script>
+    // Breadcrumb search
+    document.getElementById('icon-bc-search').innerHTML = icon('search');
+    // Tree
+    document.getElementById('icon-collapse').innerHTML = icon('chevronLeft');
+    document.getElementById('icon-expand-tree').innerHTML = icon('chevronRight');
+    // Content header buttons
+    document.getElementById('icon-ch-new').innerHTML = icon('plus');
+    document.getElementById('icon-ch-refresh').innerHTML = icon('refresh');
+    document.getElementById('icon-ch-export').innerHTML = icon('export');
+    // New Object Panel tabs
+    document.getElementById('icon-nop-user').innerHTML = icon('user-plus');
+    document.getElementById('icon-nop-group').innerHTML = icon('users');
+    document.getElementById('icon-nop-ou').innerHTML = icon('folder-plus');
+    // Selection action bar
+    document.getElementById('icon-sel-move').innerHTML   = icon('move');
+    document.getElementById('icon-sel-update').innerHTML = icon('edit-2');
+    document.getElementById('icon-sel-delete').innerHTML = icon('trash-2');
+    // Column filter icons
+    document.querySelectorAll('.icon-filter-name, .icon-filter-type, .icon-filter-details').forEach(el => el.innerHTML = icon('filter'));
+  </script>
+</body>
+
+</html>
