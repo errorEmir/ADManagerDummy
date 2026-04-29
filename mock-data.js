@@ -1,23 +1,23 @@
 const AD_TREE = {
-  id: 'root',
-  name: 'Active Directory Users and Computers [FOLSECDC.folsec.local]',
-  type: 'domain-root',
+  id: 'folsec-local',
+  name: 'folsec.local',
+  type: 'domain',
   icon: 'domain',
   children: [
     {
-      id: 'saved-queries',
-      name: 'Saved Queries',
-      type: 'container',
-      icon: 'folder-saved',
-      children: []
-    },
-    {
-      id: 'folsec-local',
-      name: 'folsec.local',
-      type: 'domain',
+      id: 'root',
+      name: 'Active Directory Users and Computers [FOLSECDC.folsec.local]',
+      type: 'domain-root',
       icon: 'domain',
       children: [
-        { id: 'bayiler',          name: 'Bayiler',                type: 'ou', icon: 'ou', children: [] },
+        {
+          id: 'saved-queries',
+          name: 'Saved Queries',
+          type: 'container',
+          icon: 'folder-saved',
+          children: []
+        },
+        { id: 'bayiler',          name: 'Bayilers',               type: 'ou', icon: 'ou', children: [] },
         { id: 'builtin',          name: 'Builtin',                type: 'container', icon: 'folder', children: [] },
         { id: 'computers',        name: 'Computers',              type: 'container', icon: 'folder', children: [] },
         { id: 'disable_users',    name: 'Disable_Users',          type: 'ou', icon: 'ou', children: [] },
@@ -47,6 +47,7 @@ const AD_TREE = {
     }
   ]
 };
+
 
 const AD_OBJECTS = {
   'folsec-group-create': [

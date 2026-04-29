@@ -7,7 +7,7 @@ const App = (() => {
   let state = {
     selectedNodeId:   'folsec-group-create',
     selectedObjectIds: new Set(),
-    expandedNodes:    new Set(['root', 'folsec-local', 'folsec-group-create']),
+    expandedNodes:    new Set(['folsec-local', 'root', 'folsec-group-create']),
     navHistory:       ['folsec-group-create'],
     navIndex:         0,
     searchTerm:       '',
@@ -18,6 +18,7 @@ const App = (() => {
     modalOpen:        null,  // 'new-user' | 'new-group' | 'new-ou' | 'properties' | 'delete'
     modalData:        {},
     isResizing:       false,
+    searchMode:       'general',  // 'general' | 'directory'
   };
 
   /* ---- DOM References ---- */
@@ -130,23 +131,8 @@ const App = (() => {
 
   function renderTree() {
     const treePanel = $('tree-panel');
-    // Preserve the collapse button if it exists
-    const collapseBtnHtml = `<button id="tree-collapse-btn" title="Paneli daralt" aria-label="Paneli daralt">
-          <span id="icon-collapse">${icon('chevronLeft')}</span>
-        </button>`;
-
-    treePanel.innerHTML = collapseBtnHtml + renderTreeNode(AD_TREE, 0);
+    treePanel.innerHTML = renderTreeNode(AD_TREE, 0);
     attachTreeEvents();
-
-    // Reattach collapse event after replacing innerHTML
-    const collapseBtn = $('tree-collapse-btn');
-    if (collapseBtn) {
-       collapseBtn.addEventListener('click', () => {
-           treePanel.classList.add('collapsed');
-           $('tree-resizer')?.classList.add('tree-hidden');
-           $('tree-expand-btn')?.classList.add('visible');
-       });
-    }
   }
 
   /* =============================================
@@ -164,6 +150,7 @@ const App = (() => {
           <p>Bu konteynerde nesne bulunmuyor</p>
         </div>`;
       if (count) count.textContent = '0 nesne';
+      updateSelection();
       return;
     }
 
@@ -925,9 +912,48 @@ const App = (() => {
       });
     }
 
-    $('btn-bc-search')?.addEventListener('click', () => {
-      alert('Gelişmiş arama açılıyor...');
+    // Search input live filter
+    $('bc-search-input')?.addEventListener('input', e => {
+      if (state.searchMode === 'general') {
+        state.searchTerm = e.target.value;
+        state.selectedObjectIds.clear();
+        updateSelection();
+        renderObjects();
+      }
     });
+    $('bc-search-input')?.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        state.searchTerm = '';
+        e.target.value = '';
+        renderObjects();
+      }
+    });
+
+    // Toggle search mode button
+    const toggleBtn = $('btn-bc-search-toggle');
+    const toggleIcon = $('icon-bc-toggle');
+    const bcSearchInput = $('bc-search-input');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        if (state.searchMode === 'general') {
+          state.searchMode = 'directory';
+          toggleBtn.classList.add('dir-mode');
+          toggleBtn.title = 'Genel aramaya geç';
+          if (bcSearchInput) bcSearchInput.placeholder = 'Dizinde ara...';
+          if (toggleIcon) toggleIcon.innerHTML = icon('search');
+        } else {
+          state.searchMode = 'general';
+          toggleBtn.classList.remove('dir-mode');
+          toggleBtn.title = 'Dizinde aramaya geç';
+          if (bcSearchInput) bcSearchInput.placeholder = 'Genel ara...';
+          if (toggleIcon) toggleIcon.innerHTML = icon('folder');
+          // clear directory search filter
+          state.searchTerm = '';
+          if (bcSearchInput) bcSearchInput.value = '';
+          renderObjects();
+        }
+      });
+    }
   }
 
   /* =============================================
@@ -1077,6 +1103,27 @@ const App = (() => {
         if (!ouname) { showToast('OU adı zorunludur', 'error'); return; }
         showToast(`OU "${ouname}" oluşturuldu ✓`, 'success');
         ['nop-ouname','nop-ou-desc'].forEach(id => { const el = $(id); if(el) el.value = ''; });
+      } else if (nopActiveType === 'contact') {
+        const fn = ($('nop-contact-firstname')?.value || '').trim();
+        const ln = ($('nop-contact-lastname')?.value || '').trim();
+        if (!fn) { showToast('Ad zorunludur', 'error'); return; }
+        showToast(`Kişi "${fn} ${ln}" oluşturuldu ✓`, 'success');
+        ['nop-contact-firstname','nop-contact-lastname','nop-contact-email','nop-contact-phone','nop-contact-company'].forEach(id => { const el = $(id); if(el) el.value = ''; });
+      } else if (nopActiveType === 'computer') {
+        const cname = ($('nop-computer-name')?.value || '').trim();
+        if (!cname) { showToast('Bilgisayar adı zorunludur', 'error'); return; }
+        showToast(`Bilgisayar "${cname}" oluşturuldu ✓`, 'success');
+        ['nop-computer-name','nop-computer-dns','nop-computer-desc','nop-computer-managed'].forEach(id => { const el = $(id); if(el) el.value = ''; });
+      } else if (nopActiveType === 'printer') {
+        const pname = ($('nop-printer-name')?.value || '').trim();
+        if (!pname) { showToast('Yazıcı adı zorunludur', 'error'); return; }
+        showToast(`Yazıcı "${pname}" oluşturuldu ✓`, 'success');
+        ['nop-printer-name','nop-printer-unc','nop-printer-location','nop-printer-desc'].forEach(id => { const el = $(id); if(el) el.value = ''; });
+      } else if (nopActiveType === 'sharedfolder') {
+        const sname = ($('nop-share-name')?.value || '').trim();
+        if (!sname) { showToast('Klasör adı zorunludur', 'error'); return; }
+        showToast(`Paylaşılan klasör "${sname}" oluşturuldu ✓`, 'success');
+        ['nop-share-name','nop-share-unc','nop-share-keywords','nop-share-desc'].forEach(id => { const el = $(id); if(el) el.value = ''; });
       }
       closeNopPanel();
     });
@@ -1120,6 +1167,34 @@ const App = (() => {
     });
   }
 
+  function initNopTabsScroll() {
+    const slider = document.querySelector('.nop-tabs');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    if (!slider) return;
+
+    slider.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - slider.offsetLeft;
+      scrollLeft = slider.scrollLeft;
+    });
+    slider.addEventListener('mouseleave', () => {
+      isDown = false;
+    });
+    slider.addEventListener('mouseup', () => {
+      isDown = false;
+    });
+    slider.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - slider.offsetLeft;
+      const walk = (x - startX) * 2; // scroll speed
+      slider.scrollLeft = scrollLeft - walk;
+    });
+  }
+
   /* =============================================
      INIT
      ============================================= */
@@ -1130,6 +1205,7 @@ const App = (() => {
     attachGlobalEvents();
     initResizer();
     attachPanelEvents();
+    initNopTabsScroll();
     updateNavButtons();
   }
 
